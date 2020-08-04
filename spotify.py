@@ -12,7 +12,7 @@ spotify = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=CLIENT
 
 def spotify_search(artis=None, track=None, playlist=None, catagory=None):
     if artis and track:
-        results = spotify.search(q='artist:' + artis + ' track:' + track, type='track')
+        results = spotify.search(q='artist:' + artis + ' track:' + track, type='track', market='DE')
         items = results['tracks']['items']
         if len(items) > 0:
             track = items[0]
@@ -20,7 +20,7 @@ def spotify_search(artis=None, track=None, playlist=None, catagory=None):
             return {"track": track['name'], "uri": track['uri']}
 
     elif artis:
-        results = spotify.search(q='artist:' + artis, type='artist')
+        results = spotify.search(q='artist:' + artis, type='artist', market='DE')
         items = results['artists']['items']
         print(items)
         if len(items) > 0:
