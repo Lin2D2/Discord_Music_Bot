@@ -2,6 +2,7 @@ import os
 import os
 import sys
 import time
+import json
 
 import discord
 import asyncio
@@ -50,6 +51,27 @@ class Bot(discord.Client):
     async def on_ready():
         print(f'{client.user} has connected to Discord!')
         # await discord.Guild.fetch_member(self, client.user.id)
+
+    @staticmethod
+    async def add_playlist(playlist_name, items):
+        with open(f"playlist/{playlist_name}", "w+") as playlist:
+            json.dump(items, playlist)
+
+    @staticmethod
+    async def get_playlists():
+        return os.listdir("playlist")
+
+    @staticmethod
+    async def add_to_playlist(playlist_name, item):
+        with open(f"playlist/{playlist_name}", "w+") as playlist:
+            items = json.load(playlist)
+            json.dump(items.append(item), playlist)
+
+    @staticmethod
+    async def get_content_from_playlist(playlist_name):
+        with open(f"playlist/{playlist_name}", "w+") as playlist:
+            items = json.load(playlist)
+        return items
 
     async def on_message(self, message):
         if message.author == client.user:
