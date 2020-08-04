@@ -8,6 +8,7 @@ import asyncio
 
 from downloader import Downloader
 from on_message import message as message_func
+from spotify import Spotify
 from play import play as play_func
 from dotenv import load_dotenv
 
@@ -43,6 +44,7 @@ class Bot(discord.Client):
         super().__init__(loop=loop)
         self.volume = 0.12
         self.downloader = Downloader()
+        self.spotify = Spotify()
 
     @staticmethod
     async def on_ready():

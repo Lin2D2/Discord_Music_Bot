@@ -20,7 +20,6 @@ class Spotify:
             items = results['tracks']['items']
             if len(items) > 0:
                 track = items[0]
-                print(track)
                 return {"track": track['name'], "uri": track['uri']}
 
         elif artis and album:
@@ -28,13 +27,11 @@ class Spotify:
             items = results['albums']['items']
             if len(items) > 0:
                 album = items[0]
-                print(album)
                 return {"album": album['name'], "uri": album['uri']}
 
         elif artis:
             results = self.spotify.search(q='artist:' + artis, type='artist', market='DE')
             items = results['artists']['items']
-            print(items)
             if len(items) > 0:
                 artist = items[0]
                 return {"artist": artist['name'], "uri": artist['uri']}
@@ -44,7 +41,6 @@ class Spotify:
             items = results['tracks']['items']
             if len(items) > 0:
                 track = items[0]
-                print(track)
                 return {"track": track['name'], "uri": track["uri"]}
 
         elif album:
@@ -52,7 +48,6 @@ class Spotify:
             items = results['album']['items']
             if len(items) > 0:
                 album = items[0]
-                print(album)
                 return {"album": album['name'], "uri": album['uri']}
 
         elif playlist:
@@ -60,12 +55,29 @@ class Spotify:
             items = results['playlists']['items']
             if len(items) > 0:
                 playlist = items[0]
-                print(playlist)
                 return {"playlist": playlist['name'], "uri": playlist['uri']}
 
     def get_playlist_content(self, playlist_id):
-        playlist_items = self.spotify.playlist_tracks(playlist_id, limit=100)
+        results = self.spotify.playlist(playlist_id, fields="tracks,next")
+        tracks = results['tracks']
         items = []
-        for playlist_items in playlist_items["items"]:
-            items.append({"track": playlist_items['track']['name'], "artist": playlist_items['track']['artists'][0]['name'], "uri": playlist_items['track']["uri"]})
+
+        def extract(source):
+            for playlist_items in source["items"]:
+                items.append({
+                    "track": playlist_items['track']['name'],
+                    "artists": [(lambda artis: artis["name"])(artis) for artis in playlist_items['track']['artists']],
+                    "uri": playlist_items['track']["uri"]}
+                )
+
+        extract(tracks)
+        while tracks['next']:
+            tracks = self.spotify.next(tracks)
+            extract(tracks)
         return items
+
+
+# spotify = Spotify()
+# result = spotify.spotify_search(playlist="N7xtMix")
+# playlist_i = result["uri"]
+# print(spotify.get_playlist_content(playlist_i))
