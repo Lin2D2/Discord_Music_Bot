@@ -59,7 +59,7 @@ async def play(self, serach, message, after=None, self_loop=False):
         # await message.channel.send(
         #     "playing " + name.strip(".webm") + " in  " + str(message.author.voice.channel)
         # )
-        await message.channel.send(embed=play_track_embed(name.strip(".webm"), message))
+        await message.channel.send(embed=play_track_embed(self, name.strip(".webm"), message))
     else:
         if not self_loop:
             print("try join")
