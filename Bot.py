@@ -32,7 +32,6 @@ try:
     if "playlist" not in os.listdir(os.getcwd()):
         os.mkdir("playlist")
     else:
-        print(os.listdir(os.getcwd()))
         print("already there")
 except OSError:
     print("os error")
