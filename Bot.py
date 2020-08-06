@@ -129,18 +129,18 @@ class Bot(discord.Client):
         await self.voice_clients[0].disconnect()
 
     def _playback_finished(self, message, error=None):
-        print("_playback_finished")
+        print("playback_finished")
         if len(self.voice_clients) > 0:
             if not self.voice_clients[0].is_playing():
                 if not self.skipping:
                     self.next_song_ready = (True, message)
-                    print("Here???")
+                    print(f'next song ready triggerd: {self.next_song_ready[0]}')
                 else:
                     return
             else:
                 print("still playing")
         else:
-            print(self.voice_clients)
+            print(f'voice clients:{self.voice_clients}')
             if len(self.voice_clients) > 0:
                 asyncio.sleep(0.01)
                 self._playback_finished(message)
@@ -148,7 +148,7 @@ class Bot(discord.Client):
                 return
 
     async def play(self, serach, message, self_loop=False):
-        print("start play function")
+        print("starting play function")
         await play_func(self, serach, message, after=self._playback_finished(message))
 
     async def play_chess(self, message):
@@ -184,6 +184,7 @@ class Bot(discord.Client):
 
     async def setup_for_playing_playlist(self):
         self.playlist_i = -1
+        self.next_song_ready = (False, None)
         self.loop.create_task(self.loop_playlist())
 
     async def play_from_playlist(self, message, playlist_name=None):

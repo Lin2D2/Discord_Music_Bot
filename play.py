@@ -31,7 +31,6 @@ class SourcePlaybackCounter(AudioSource):
 
 
 async def play(self, serach, message, after=None, self_loop=False):
-    print(f'starting play function serach:{serach} message:{message.content}')
     start = time.time()
     if len(self.voice_clients) > 0:
         boptions = "-nostdin"
