@@ -3,6 +3,7 @@ import os
 import sys
 import subprocess
 from discord import FFmpegPCMAudio, PCMVolumeTransformer, AudioSource
+from embed import chess_board_embed, chess_message_embed, play_track_embed
 
 
 if sys.platform == "win32":
@@ -29,7 +30,8 @@ class SourcePlaybackCounter(AudioSource):
         self._source.cleanup()
 
 
-def play(self, serach, message, self_loop=False):
+async def play(self, serach, message, after=None, self_loop=False):
+    print(f'starting play function serach:{serach} message:{message.content}')
     start = time.time()
     if len(self.voice_clients) > 0:
         boptions = "-nostdin"
@@ -37,7 +39,7 @@ def play(self, serach, message, self_loop=False):
         files_dates = []
         for e in os.listdir("music"):
             files_dates.append(e)
-        name = self.downloader.download(self.downloader.search(serach).videoId[0], files_dates)
+        name = self.downloader.download(serach, files_dates)
         _source = SourcePlaybackCounter(
             PCMVolumeTransformer(
                 FFmpegPCMAudio(
@@ -49,12 +51,15 @@ def play(self, serach, message, self_loop=False):
                 self.volume
             )
         )
-        self.voice_clients[0].play(_source)
+        if self.voice_clients[0].is_playing():
+            print("stop")
+            await self.stop()
+        self.voice_clients[0].play(_source, after=after)
         print("time of play function " + str(time.time() - start))
-        await message.channel.send(
-            "playing " + name.strip(".opus") + " in  " + str(message.author.voice.channel),
-            delete_after=30
-        )
+        # await message.channel.send(
+        #     "playing " + name.strip(".webm") + " in  " + str(message.author.voice.channel)
+        # )
+        await message.channel.send(embed=play_track_embed(name.strip(".webm"), message))
     else:
         if not self_loop:
             print("try join")
