@@ -27,11 +27,15 @@ else:
     slash = "/"
 
 try:
-    if not "music" or "playlist" in os.listdir(os.getcwd()):
+    if "music" not in os.listdir(os.getcwd()):
         os.mkdir("music")
+    if "playlist" not in os.listdir(os.getcwd()):
         os.mkdir("playlist")
+    else:
+        print(os.listdir(os.getcwd()))
+        print("already there")
 except OSError:
-    pass
+    print("os error")
 
 # TODO make seperat fuction to delete old songs
 
