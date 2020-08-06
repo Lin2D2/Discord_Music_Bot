@@ -26,6 +26,13 @@ if sys.platform == "win32":
 else:
     slash = "/"
 
+try:
+    if not "music" or "playlist" in os.listdir(os.getcwd()):
+        os.mkdir("music")
+        os.mkdir("playlist")
+except OSError:
+    pass
+
 # TODO make seperat fuction to delete old songs
 
 # def creation_date(path_to_file):
