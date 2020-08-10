@@ -1,11 +1,20 @@
 import chess
 
-
 symbol_to_text = {
     "k": "King", "q": "Queen",
     "r": "Rook", "b": "Bishop",
     "n": "Knights", "p": "Pawn"
 
+}
+
+change = {
+    "K": "♔", "Q": "♕",
+    "R": "♖", "B": "♗",
+    "N": "♘", "P": "♙",
+    "k": "♚", "q": "♛",
+    "r": "♜", "b": "♝",
+    "n": "♞", "p": "♙",
+    ".": "◻"
 }
 
 
@@ -34,7 +43,7 @@ class Chess:
             else:
                 event = True
             self.board.push(move)
-            self.update()
+            self.update_emoji()
             return event
         else:
             return False
@@ -43,12 +52,41 @@ class Chess:
         for line in str(self.board).split("\n"):
             self.newBoard.append(line.split(" "))
         self.newBoard.reverse()
+        i = 0
+        new_board = []
+        for x in self.newBoard:
+            for y in x:
+                try:
+                    new_board[int(i / 8)].append(y.strip(" "))
+                except IndexError:
+                    new_board.append([str(i / 8 + 1).split(".")[0] + " |", y])
+                i += 1
+        new_board.insert(0, ["   ", "a", "b", "c", "d", "e", "f", "g", "h"])
+        new_board.insert(1, ["    ---------------"])
+        self.newBoard = new_board
         return
+
+    def update_emoji(self):
+        self.update()
+        i = 0
+        new_board = []
+        for x in self.newBoard:
+            for y in x:
+                try:
+                    try:
+                        new_board[int(i/8)].append(change[y.strip(" ")])
+                    except IndexError:
+                        new_board.append([str(i/8+1).split(".")[0] + " | ", change[y]])
+                    i += 1
+                except KeyError:
+                    new_board[int(i/8)].append(y.strip(" "))
+                    i += 1
+        new_board.insert(0, ["    ", "a ", "b ", "c ", "d ", "e ", "f ", "g ", "h "])
+        self.newBoard = new_board
 
     def get_piece(self, location):
         sq = chess.SQUARES[chess.SQUARE_NAMES.index(location)]
         return chess.Board.piece_at(self.board, sq)
-
 
 # __chess = Chess()
 # print(chess.SQUARE_NAMES)
@@ -75,5 +113,3 @@ class Chess:
 #     except:
 #         new_Board.append(char)
 #         i += 1
-
-

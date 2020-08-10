@@ -108,9 +108,12 @@ async def message(self, message, client, prefix):
                     str(message.content).split("from uri ")[-1]
                 )
             else:
-                await self.create_playlist_from_spotify(
-                    str(message.content).split("create ")[-1], str(message.content).split("create ")[-1]
-                )
+                if str(message.content).find("random ") != -1:
+                    await self.make_random_playlist()
+                else:
+                    await self.create_playlist_from_spotify(
+                        str(message.content).split("create ")[-1], str(message.content).split("create ")[-1]
+                    )
         elif str(message.content).find(prefix + "volume") != -1:
             value = str(message.content).split(prefix + "volume")[-1]
             value = float(value.strip(" "))

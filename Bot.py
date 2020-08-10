@@ -32,7 +32,7 @@ try:
     if "playlist" not in os.listdir(os.getcwd()):
         os.mkdir("playlist")
     else:
-        print("already there")
+        pass
 except OSError:
     print("os error")
 
@@ -83,8 +83,9 @@ class Bot(discord.Client):
                 if not self.voice_clients[0].is_playing():
                     print(self.next_song_ready)
                     message = self.next_song_ready[1]
-                    self.next_song_ready = (False, None)
                     await self.play_from_playlist(message)
+                    await asyncio.sleep(0.25)
+                    self.next_song_ready = (False, None)
                 else:
                     await asyncio.sleep(0.25)
             else:
@@ -110,6 +111,15 @@ class Bot(discord.Client):
         with open(f"playlist/{playlist_name}", "r") as playlist:
             items = json.load(playlist)
         return items
+
+    async def make_random_playlist(self):
+        # TODO fix!!!
+        files_dates = [e for e in os.listdir("music")]
+        print(files_dates)
+        items = [self.spotify.spotify_search(track=str(e).split(".")[0]) for e in files_dates]
+        print(items)
+        with open(f"playlist/random", "w+") as playlist:
+            json.dump(items, playlist)
 
     async def on_message(self, message):
         if message.author == client.user:
@@ -147,9 +157,22 @@ class Bot(discord.Client):
             else:
                 return
 
+    def my_after(self, error):
+        async def ready():
+            self.next_song_ready = (True, None)
+            print(f'next song ready triggerd: {self.next_song_ready[0]}')
+        coro = ready()
+        fut = asyncio.run_coroutine_threadsafe(coro, client.loop)
+        try:
+            fut.result()
+        except:
+            print(error)
+            # an error happened sending the message
+            pass
+
     async def play(self, serach, message, self_loop=False):
         print("starting play function")
-        await play_func(self, serach, message, after=self._playback_finished(message))
+        await play_func(self, serach, message, after=self.my_after)
 
     async def play_chess(self, message):
         # TODO init of this need 2 players to accept to start the game
@@ -194,6 +217,7 @@ class Bot(discord.Client):
             )
             self.playlist_i = 0
         print("start play function")
+        print(f'current playlsist {self.current_playlist_name}')
         if not playlist_name:
             if not self.current_playlist_name == "":
                 playlist_name = self.current_playlist_name

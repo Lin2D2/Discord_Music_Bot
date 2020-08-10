@@ -47,6 +47,7 @@ class Downloader:
     def download(self, serach, list_name, link=None):
         serach_result = self.search(serach)
         id = serach_result.videoId[0]
+        print(f'video id: {id}')
         if str(serach_result.title[0]) not in [str(e).split(".")[0] for e in list_name]:
             with yt.YoutubeDL(ydl_opts) as ydl:
                 print("start ydl.extract_info")

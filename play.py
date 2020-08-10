@@ -38,6 +38,7 @@ async def play(self, serach, message, after=None, self_loop=False):
         files_dates = []
         for e in os.listdir("music"):
             files_dates.append(e)
+        print(f'search: {serach}')
         name = self.downloader.download(serach, files_dates)
         _source = SourcePlaybackCounter(
             PCMVolumeTransformer(
@@ -53,6 +54,7 @@ async def play(self, serach, message, after=None, self_loop=False):
         if self.voice_clients[0].is_playing():
             print("stop")
             await self.stop()
+        print("giving play call Here!")
         self.voice_clients[0].play(_source, after=after)
         print("time of play function " + str(time.time() - start))
         # await message.channel.send(
