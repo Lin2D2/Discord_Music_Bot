@@ -36,7 +36,7 @@ try:
 except OSError:
     print("os error")
 
-# TODO make seperat fuction to delete old songs
+# TODO make separated function to delete old songs
 
 # def creation_date(path_to_file):
 #     if platform.system() == 'Windows':
@@ -71,7 +71,7 @@ class Bot(discord.Client):
     async def on_ready(self):
         print(f'{client.user} has connected to Discord!')
         self.client = client
-        self.ws._keep_alive.name = 'Gateway Keepalive'
+        self.ws._keep_alive.name = 'Gateway keep alive'
         # await discord.Guild.fetch_member(self, client.user.id)
 
     async def loop_playlist(self):
@@ -128,7 +128,7 @@ class Bot(discord.Client):
 
     async def join(self, author):
         channel = author.voice.channel
-        await channel.connect()  # TODO socket connection failed Errno 11001
+        await channel.connect()
         self.voice_clients[0].is_connected()
         await self.ws.voice_state(channel.guild.id, channel.id, False, True)
 
@@ -138,29 +138,10 @@ class Bot(discord.Client):
     async def leave(self):
         await self.voice_clients[0].disconnect()
 
-    def _playback_finished(self, message, error=None):
-        print("playback_finished")
-        if len(self.voice_clients) > 0:
-            if not self.voice_clients[0].is_playing():
-                if not self.skipping:
-                    self.next_song_ready = (True, message)
-                    print(f'next song ready triggerd: {self.next_song_ready[0]}')
-                else:
-                    return
-            else:
-                print("still playing")
-        else:
-            print(f'voice clients:{self.voice_clients}')
-            if len(self.voice_clients) > 0:
-                asyncio.sleep(0.01)
-                self._playback_finished(message)
-            else:
-                return
-
     def my_after(self, error):
         async def ready():
             self.next_song_ready = (True, None)
-            print(f'next song ready triggerd: {self.next_song_ready[0]}')
+            print(f'next song ready triggered: {self.next_song_ready[0]}')
         coro = ready()
         fut = asyncio.run_coroutine_threadsafe(coro, client.loop)
         try:
@@ -170,9 +151,9 @@ class Bot(discord.Client):
             # an error happened sending the message
             pass
 
-    async def play(self, serach, message, self_loop=False):
+    async def play(self, search, message):
         print("starting play function")
-        await play_func(self, serach, message, after=self.my_after)
+        await play_func(self, search, message, after=self.my_after)
 
     async def play_chess(self, message):
         # TODO init of this need 2 players to accept to start the game
@@ -217,7 +198,7 @@ class Bot(discord.Client):
             )
             self.playlist_i = 0
         print("start play function")
-        print(f'current playlsist {self.current_playlist_name}')
+        print(f'current playlist {self.current_playlist_name}')
         if not playlist_name:
             if not self.current_playlist_name == "":
                 playlist_name = self.current_playlist_name
@@ -228,11 +209,11 @@ class Bot(discord.Client):
             self.current_playlist_name = playlist_name
         self.playlist_i += 1
         await play_func(
-                self,
-                str(self.current_playlist[self.playlist_i]["track"]) + " " + str(self.current_playlist[self.playlist_i]["artists"][0]),
-                message,
-                after=self._playback_finished(message)
-            )
+            self,
+            f'{self.current_playlist[self.playlist_i]["track"]} {self.current_playlist[self.playlist_i]["artists"][0]}',
+            message,
+            after=self.my_after
+        )
 
     async def pause(self):
         self.voice_clients[0].pause()

@@ -14,7 +14,7 @@ class Spotify:
             auth_manager=SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
         )
 
-    def spotify_search(self, artis=None, track=None, album=None, playlist=None, catagory=None):
+    def spotify_search(self, artis=None, track=None, album=None, playlist=None, category=None):
         if artis and track:
             results = self.spotify.search(q='artist:' + artis + ' track:' + track, type='track', market='DE')
             items = results['tracks']['items']

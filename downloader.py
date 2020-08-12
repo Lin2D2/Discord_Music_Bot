@@ -28,10 +28,10 @@ ydl_opts = {
 }
 
 
-# def common_member(first, secound):
+# def common_member(first, second):
 #     first_set = set(first)
-#     secound_set = set(secound)
-#     if len(first_set.intersection(secound_set)) > 0:
+#     second_set = set(second)
+#     if len(first_set.intersection(second_set)) > 0:
 #         return True
 #     return False
 
@@ -44,18 +44,18 @@ class Downloader:
     def search(name):
         return yts.search(name, sMax=8, sType=["video"])
 
-    def download(self, serach, list_name, link=None):
-        serach_result = self.search(serach)
-        id = serach_result.videoId[0]
-        print(f'video id: {id}')
-        if str(serach_result.title[0]) not in [str(e).split(".")[0] for e in list_name]:
+    def download(self, search, list_name, link=None):
+        search_result = self.search(search)
+        vid = search_result.videoId[0]
+        print(f'video id: {vid}')
+        if str(search_result.title[0]) not in [str(e).split(".")[0] for e in list_name]:
             with yt.YoutubeDL(ydl_opts) as ydl:
                 print("start ydl.extract_info")
                 start = time.time()
                 if link:
                     result = ydl.extract_info("{}".format(link))
                 else:
-                    result = ydl.extract_info("{}".format("https://www.youtube.com/watch?v=" + id))
+                    result = ydl.extract_info("{}".format("https://www.youtube.com/watch?v=" + vid))
                 name = str(result.get("title", None)) + "." + str(file_format)
                 print(time.time() - start)
                 print(name)
@@ -65,8 +65,8 @@ class Downloader:
                     if link:
                         ydl.download([link])
                     else:
-                        ydl.download(["https://www.youtube.com/watch?v=" + id])
+                        ydl.download(["https://www.youtube.com/watch?v=" + vid])
                     print(time.time() - start)
                 return name
         else:
-            return str(serach_result.title[0]) + "." + file_format
+            return str(search_result.title[0]) + "." + file_format

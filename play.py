@@ -30,7 +30,7 @@ class SourcePlaybackCounter(AudioSource):
         self._source.cleanup()
 
 
-async def play(self, serach, message, after=None, self_loop=False):
+async def play(self, search, message, after=None, self_loop=False):
     start = time.time()
     if len(self.voice_clients) > 0:
         boptions = "-nostdin"
@@ -38,8 +38,8 @@ async def play(self, serach, message, after=None, self_loop=False):
         files_dates = []
         for e in os.listdir("music"):
             files_dates.append(e)
-        print(f'search: {serach}')
-        name = self.downloader.download(serach, files_dates)
+        print(f'search: {search}')
+        name = self.downloader.download(search, files_dates)
         _source = SourcePlaybackCounter(
             PCMVolumeTransformer(
                 FFmpegPCMAudio(
@@ -65,6 +65,6 @@ async def play(self, serach, message, after=None, self_loop=False):
         if not self_loop:
             print("try join")
             await self.join(message.author)
-            await self.play(serach, message, self_loop=True)
+            await self.play(search, message, self_loop=True)
         else:
             await message.channel.send("Failed!", delete_after=20)
