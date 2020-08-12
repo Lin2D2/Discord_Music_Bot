@@ -156,14 +156,14 @@ class Bot(discord.Client):
             self.next_song_ready = (True, None)
             print(f'next song ready triggered: {self.next_song_ready[0]}')
             if self.current_playlist == []:
-                print(self.last_song)
+                print(self.last_song[0])
                 await self.play(self.last_song[0], self.last_song[1], autoloop=True)
 
         coro = ready()
         fut = asyncio.run_coroutine_threadsafe(coro, client.loop)
         try:
             fut.result()
-        except:
+        except OSError:
             print(f'error: {error}')
 
     async def play(self, search, message, autoloop=False):
@@ -181,7 +181,7 @@ class Bot(discord.Client):
                 f'Playlist ended {self.current_playlist_name} in {str(message.author.voice.channel)} playing from start'
             )
             self.playlist_i = 0
-        print("start play function")
+        print("start play from playlist function")
         print(f'current playlist {self.current_playlist_name}')
         if not playlist_name:
             if not self.current_playlist_name == "":
