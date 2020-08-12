@@ -34,22 +34,31 @@ def chess_message_embed(self, title, description, color=0xdbff):
     return embed
 
 
-def play_track_embed(self, title, message):
+def normal_message_embed(self, title, message):
     embed = discord.Embed(
         title=title, colour=discord.Colour(0x5cff00), url="https://discordapp.com",
+        description=message,
+        timestamp=datetime.datetime.now().utcfromtimestamp(int(time.time())))
+    embed.set_footer(text=self.client.user.name, icon_url=self.client.user.avatar_url)
+    return embed
+
+
+def play_track_embed(self, title, message, vid, autoloop=None):
+    embed = discord.Embed(
+        title="Auto loop" if autoloop else title, colour=discord.Colour(0x5cff00), url="https://discordapp.com",
         description=f'playing {title} in {message.author.voice.channel}',
         timestamp=datetime.datetime.now().utcfromtimestamp(int(time.time())))
-    print("Fix me were is the thumbnail")
-    if str(message.content).find("playlist") != -1:
-        embed.set_thumbnail(url=self.current_playlist[self.playlist_i]["image"])
-    else:
+    try:
+        embed.set_thumbnail(url=self.spotify.spotify_search(
+            track=str(message.content).split("?play ", maxsplit=1)[-1])["image"])
+    except TypeError:
         try:
-            print(self.spotify.spotify_search(track=str(message.content).split("play ")[-1])["image"])
-            embed.set_thumbnail(url=self.spotify.spotify_search(track=str(message.content).split("play ")[-1])["image"])
+            embed.set_thumbnail(url=self.spotify.spotify_search(track=title)["image"])
         except TypeError:
             try:
-                embed.set_thumbnail(url=self.spotify.spotify_search(track=title)["image"])
+                print("used youtube thumbnail")
+                embed.set_thumbnail(url=self.downloader.info_extract(vid=vid)["thumbnails"][1]["url"])
             except TypeError:
-                pass
+                print("No Idea what went wrong")
     embed.set_footer(text=self.client.user.name, icon_url=self.client.user.avatar_url)
     return embed

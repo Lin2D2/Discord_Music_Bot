@@ -20,7 +20,6 @@ file_format = "webm"
 
 ydl_opts = {
     'format': 'bestaudio/best',
-    'extractaudio': True,
     'audioformat': file_format,
     'noplaylist': True,
     'nocheckcertificate': True,
@@ -44,6 +43,15 @@ class Downloader:
     def search(name):
         return yts.search(name, sMax=8, sType=["video"])
 
+    @staticmethod
+    def info_extract(vid=None, link=None):
+        if vid:
+            with yt.YoutubeDL(ydl_opts) as ydl:
+                return ydl.extract_info("{}".format("https://www.youtube.com/watch?v=" + vid))
+        elif link:
+            with yt.YoutubeDL(ydl_opts) as ydl:
+                return ydl.extract_info("{}".format(link))
+
     def download(self, search, list_name, link=None):
         search_result = self.search(search)
         vid = search_result.videoId[0]
@@ -51,22 +59,15 @@ class Downloader:
         if str(search_result.title[0]) not in [str(e).split(".")[0] for e in list_name]:
             with yt.YoutubeDL(ydl_opts) as ydl:
                 print("start ydl.extract_info")
-                start = time.time()
-                if link:
-                    result = ydl.extract_info("{}".format(link))
-                else:
-                    result = ydl.extract_info("{}".format("https://www.youtube.com/watch?v=" + vid))
-                name = str(result.get("title", None)) + "." + str(file_format)
-                print(time.time() - start)
+                name = str(search_result.title) + "." + str(file_format)
                 print(name)
                 if name not in list_name:
                     print("start ydl.download")
-                    start = time.time()
                     if link:
                         ydl.download([link])
                     else:
                         ydl.download(["https://www.youtube.com/watch?v=" + vid])
-                    print(time.time() - start)
-                return name
+                return name, vid
         else:
-            return str(search_result.title[0]) + "." + file_format
+            print("Video already local skipping download")
+            return str(search_result.title[0]) + "." + file_format, vid

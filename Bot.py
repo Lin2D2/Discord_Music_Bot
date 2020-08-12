@@ -59,6 +59,7 @@ class Bot(discord.Client):
         self.volume = 0.2
         self.downloader = Downloader()
         self.spotify = Spotify()
+        self.last_song = ("", None)
         self.playlist_i = -1
         self.current_playlist_name = ""
         self.current_playlist = []
@@ -142,18 +143,49 @@ class Bot(discord.Client):
         async def ready():
             self.next_song_ready = (True, None)
             print(f'next song ready triggered: {self.next_song_ready[0]}')
+            if self.current_playlist == []:
+                print(self.last_song)
+                await self.play(self.last_song[0], self.last_song[1], autoloop=True)
+
         coro = ready()
         fut = asyncio.run_coroutine_threadsafe(coro, client.loop)
         try:
             fut.result()
         except:
-            print(error)
-            # an error happened sending the message
-            pass
+            print(f'error: {error}')
 
     async def play(self, search, message):
         print("starting play function")
         await play_func(self, search, message, after=self.my_after)
+
+    async def setup_for_playing_playlist(self):
+        self.playlist_i = -1
+        self.next_song_ready = (False, None)
+        self.loop.create_task(self.loop_playlist())
+
+    async def play_from_playlist(self, message, playlist_name=None):
+        if self.playlist_i > len(self.current_playlist):
+            await message.channel.send(
+                f'Playlist ended {self.current_playlist_name} in {str(message.author.voice.channel)} playing from start'
+            )
+            self.playlist_i = 0
+        print("start play function")
+        print(f'current playlist {self.current_playlist_name}')
+        if not playlist_name:
+            if not self.current_playlist_name == "":
+                playlist_name = self.current_playlist_name
+            else:
+                await self.stop()
+        if self.current_playlist_name != playlist_name:
+            self.current_playlist = await self.get_content_from_playlist(playlist_name)
+            self.current_playlist_name = playlist_name
+        self.playlist_i += 1
+        await play_func(
+            self,
+            f'{self.current_playlist[self.playlist_i]["track"]} {self.current_playlist[self.playlist_i]["artists"][0]}',
+            message,
+            after=self.my_after
+        )
 
     async def play_chess(self, message):
         # TODO init of this need 2 players to accept to start the game
@@ -185,35 +217,6 @@ class Bot(discord.Client):
                                           ),
                 delete_after=30
             )
-
-    async def setup_for_playing_playlist(self):
-        self.playlist_i = -1
-        self.next_song_ready = (False, None)
-        self.loop.create_task(self.loop_playlist())
-
-    async def play_from_playlist(self, message, playlist_name=None):
-        if self.playlist_i > len(self.current_playlist):
-            await message.channel.send(
-                f'Playlist ended {self.current_playlist_name} in {str(message.author.voice.channel)} playing from start'
-            )
-            self.playlist_i = 0
-        print("start play function")
-        print(f'current playlist {self.current_playlist_name}')
-        if not playlist_name:
-            if not self.current_playlist_name == "":
-                playlist_name = self.current_playlist_name
-            else:
-                await self.stop()
-        if self.current_playlist_name != playlist_name:
-            self.current_playlist = await self.get_content_from_playlist(playlist_name)
-            self.current_playlist_name = playlist_name
-        self.playlist_i += 1
-        await play_func(
-            self,
-            f'{self.current_playlist[self.playlist_i]["track"]} {self.current_playlist[self.playlist_i]["artists"][0]}',
-            message,
-            after=self.my_after
-        )
 
     async def pause(self):
         self.voice_clients[0].pause()

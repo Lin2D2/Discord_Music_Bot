@@ -30,8 +30,7 @@ class SourcePlaybackCounter(AudioSource):
         self._source.cleanup()
 
 
-async def play(self, search, message, after=None, self_loop=False):
-    start = time.time()
+async def play(self, search, message, after=None, autoloop=False):
     if len(self.voice_clients) > 0:
         boptions = "-nostdin"
         aoptions = "-vn"
@@ -39,7 +38,7 @@ async def play(self, search, message, after=None, self_loop=False):
         for e in os.listdir("music"):
             files_dates.append(e)
         print(f'search: {search}')
-        name = self.downloader.download(search, files_dates)
+        name, vid = self.downloader.download(search, files_dates)
         _source = SourcePlaybackCounter(
             PCMVolumeTransformer(
                 FFmpegPCMAudio(
@@ -60,7 +59,8 @@ async def play(self, search, message, after=None, self_loop=False):
         # await message.channel.send(
         #     "playing " + name.strip(".webm") + " in  " + str(message.author.voice.channel)
         # )
-        await message.channel.send(embed=play_track_embed(self, name.strip(".webm"), message))
+        await message.channel.send(embed=play_track_embed(self, name.strip(".webm"), message, vid, autoloop=autoloop))
+        self.last_song = (search, message)
     else:
         if not self_loop:
             print("try join")
