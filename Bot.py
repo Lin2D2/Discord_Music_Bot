@@ -11,7 +11,7 @@ from on_message import message as message_func
 from spotify import Spotify
 from play import play as play_func
 from _chess import Chess
-from embed import chess_board_embed, chess_message_embed, play_track_embed
+from embed import chess_board_embed, chess_message_embed, normal_message_embed
 
 from dotenv import load_dotenv
 

@@ -3,7 +3,7 @@ import os
 import sys
 import subprocess
 from discord import FFmpegPCMAudio, PCMVolumeTransformer, AudioSource
-from embed import chess_board_embed, chess_message_embed, play_track_embed
+from embed import play_track_embed
 
 
 if sys.platform == "win32":
@@ -53,18 +53,12 @@ async def play(self, search, message, after=None, autoloop=False):
         if self.voice_clients[0].is_playing():
             print("stop")
             await self.stop()
-        print("giving play call Here!")
         self.voice_clients[0].play(_source, after=after)
-        print("time of play function " + str(time.time() - start))
         # await message.channel.send(
         #     "playing " + name.strip(".webm") + " in  " + str(message.author.voice.channel)
         # )
         await message.channel.send(embed=play_track_embed(self, name.strip(".webm"), message, vid, autoloop=autoloop))
         self.last_song = (search, message)
     else:
-        if not self_loop:
-            print("try join")
-            await self.join(message.author)
-            await self.play(search, message, self_loop=True)
-        else:
-            await message.channel.send("Failed!", delete_after=20)
+        await self.join(message.author)
+        await self.play(search, message)
