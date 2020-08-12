@@ -85,6 +85,8 @@ async def message(self, message, client, prefix):
                                               color=0xff0004),
                     delete_after=20
                 )
+        elif message.content.startswith(prefix + "search "):
+            await self.search(str(message.content).split(prefix + "search ")[-1], message)
         elif message.content.startswith(prefix + "play chess"):
             await self.play_chess(message)
         elif message.content.startswith(prefix + "play playlist"):

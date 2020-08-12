@@ -34,9 +34,9 @@ def chess_message_embed(self, title, description, color=0xdbff):
     return embed
 
 
-def normal_message_embed(self, title, message):
+def normal_message_embed(self, title, message, color=0x4a4a4a):
     embed = discord.Embed(
-        title=title, colour=discord.Colour(0x5cff00), url="https://discordapp.com",
+        title=title, colour=discord.Colour(color),
         description=message,
         timestamp=datetime.datetime.now().utcfromtimestamp(int(time.time())))
     embed.set_footer(text=self.client.user.name, icon_url=self.client.user.avatar_url)
@@ -45,7 +45,7 @@ def normal_message_embed(self, title, message):
 
 def play_track_embed(self, title, message, vid, autoloop=None):
     embed = discord.Embed(
-        title="Auto loop" if autoloop else title, colour=discord.Colour(0x5cff00), url="https://discordapp.com",
+        title="Auto loop" if autoloop else title, colour=discord.Colour(0x5cff00),
         description=f'playing {title} in {message.author.voice.channel}',
         timestamp=datetime.datetime.now().utcfromtimestamp(int(time.time())))
     try:
@@ -61,4 +61,16 @@ def play_track_embed(self, title, message, vid, autoloop=None):
             except TypeError:
                 print("No Idea what went wrong")
     embed.set_footer(text=self.client.user.name, icon_url=self.client.user.avatar_url)
+    return embed
+
+
+def search_track_embed(self, title, search):
+    embed = discord.Embed(title=f'Search for {title}', colour=discord.Colour(0x9b9b9b),
+                          description="Type a Number to select a song or `cancel` to quit",
+                          timestamp=datetime.datetime.now().utcfromtimestamp(int(time.time())))
+    embed.set_footer(text=self.client.user.name, icon_url=self.client.user.avatar_url)
+    for item in search:
+        embed.add_field(name=f'`{int(search.index(item))+1}`.',
+                        value=f'[{item["title"]}](https://www.youtube.com/watch?v={item["id"]}) {item["duration"]}...',
+                        inline=False)
     return embed

@@ -11,7 +11,7 @@ from on_message import message as message_func
 from spotify import Spotify
 from play import play as play_func
 from _chess import Chess
-from embed import chess_board_embed, chess_message_embed, normal_message_embed
+from embed import chess_board_embed, chess_message_embed, search_track_embed
 
 from dotenv import load_dotenv
 
@@ -66,6 +66,7 @@ class Bot(discord.Client):
         self.next_song_ready = (False, None)
         self.skipping = False
         self.end_playlist_loop = False
+        self.active_search = None
 
         self.chess = Chess()
 
@@ -123,9 +124,15 @@ class Bot(discord.Client):
             json.dump(items, playlist)
 
     async def on_message(self, message):
-        if message.author == client.user:
-            return
-        await message_func(self, message, client, prefix)
+        if not self.active_search:
+            if message.author == client.user:
+                return
+            await message_func(self, message, client, prefix)
+        else:
+            if message.author == client.user:
+                return
+            await play_func(self, self.active_search[int(message.content)-1]["title"], message)
+            self.active_search = None
 
     async def join(self, author):
         channel = author.voice.channel
@@ -138,6 +145,11 @@ class Bot(discord.Client):
 
     async def leave(self):
         await self.voice_clients[0].disconnect()
+
+    async def search(self, search, message):
+        search_result = self.downloader.alt_search(search)
+        self.active_search = search_result
+        await message.channel.send(embed=search_track_embed(self, search, search_result))
 
     def my_after(self, error):
         async def ready():
@@ -154,9 +166,9 @@ class Bot(discord.Client):
         except:
             print(f'error: {error}')
 
-    async def play(self, search, message):
+    async def play(self, search, message, autoloop=False):
         print("starting play function")
-        await play_func(self, search, message, after=self.my_after)
+        await play_func(self, search, message, after=self.my_after, autoloop=autoloop)
 
     async def setup_for_playing_playlist(self):
         self.playlist_i = -1
@@ -177,7 +189,10 @@ class Bot(discord.Client):
             else:
                 await self.stop()
         if self.current_playlist_name != playlist_name:
-            self.current_playlist = await self.get_content_from_playlist(playlist_name)
+            try:
+                self.current_playlist = await self.get_content_from_playlist(playlist_name)
+            except FileNotFoundError:
+                pass
             self.current_playlist_name = playlist_name
         self.playlist_i += 1
         await play_func(

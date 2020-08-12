@@ -5,6 +5,7 @@ import yt_search
 import sys
 import os
 import time
+from youtube_search import YoutubeSearch
 
 
 if sys.platform == "win32":
@@ -12,10 +13,10 @@ if sys.platform == "win32":
 else:
     slash = "/"
 
-load_dotenv()
-API_KEY = os.getenv('YOUTUBE_API_KEY')
-
-yts = yt_search.build(API_KEY)
+# load_dotenv()
+# API_KEY = os.getenv('YOUTUBE_API_KEY')
+#
+# yts = yt_search.build(API_KEY)
 file_format = "webm"
 
 ydl_opts = {
@@ -38,10 +39,14 @@ ydl_opts = {
 class Downloader:
     def __init__(self):
         pass
+    #
+    # @staticmethod
+    # def search(name):
+    #     return yts.search(name, sMax=8, sType=["video"])
 
     @staticmethod
-    def search(name):
-        return yts.search(name, sMax=8, sType=["video"])
+    def alt_search(name):
+        return YoutubeSearch(name, max_results=8).to_dict()
 
     @staticmethod
     def info_extract(vid=None, link=None):
@@ -53,13 +58,13 @@ class Downloader:
                 return ydl.extract_info("{}".format(link))
 
     def download(self, search, list_name, link=None):
-        search_result = self.search(search)
-        vid = search_result.videoId[0]
+        search_result = self.alt_search(search)
+        vid = search_result[0]["id"]
         print(f'video id: {vid}')
-        if str(search_result.title[0]) not in [str(e).split(".")[0] for e in list_name]:
+        if str(search_result[0]["title"]) not in [str(e).split(".")[0] for e in list_name]:
             with yt.YoutubeDL(ydl_opts) as ydl:
                 print("start ydl.extract_info")
-                name = str(search_result.title) + "." + str(file_format)
+                name = str(search_result[0]["title"]) + "." + str(file_format)
                 print(name)
                 if name not in list_name:
                     print("start ydl.download")
@@ -70,4 +75,4 @@ class Downloader:
                 return name, vid
         else:
             print("Video already local skipping download")
-            return str(search_result.title[0]) + "." + file_format, vid
+            return str(search_result[0]["title"]) + "." + file_format, vid
