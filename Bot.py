@@ -57,7 +57,7 @@ def create_logger():
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
 
-    formatter = logging.Formatter("%(asctime)s: %(levelname)s: %(message)s",
+    formatter = logging.Formatter("%(asctime)s: :%(levelname)s: %(message)s",
                                   "%Y-%m-%d %H:%M:%S")
 
     ch.setFormatter(formatter)
@@ -77,6 +77,7 @@ class Bot(discord.Client):
         self.spotify = Spotify(self.logger)
         self.last_song = None
         self.playlist_i = -1
+        self.shuffel = None  # TODO implement shiffel, shiffel is just a list of indexes that are randeom but each song is only played ones. shuffel is indexed by the playlist i
         self.current_playlist_name = None
         self.current_playlist = None
         self.next_song_ready = (False, None)
@@ -101,7 +102,7 @@ class Bot(discord.Client):
             if self.next_song_ready[0]:
                 self.logger.debug("next song ready")
                 if not self.voice_clients[0].is_playing():
-                    print(self.next_song_ready)
+                    self.logger.debug(self.next_song_ready)
                     message = self.next_song_ready[1]
                     await self.play_from_playlist(message)
                     self.logger.debug("setting next song ready False")
@@ -199,6 +200,7 @@ class Bot(discord.Client):
         self.next_song_ready = (False, None)
         self.loop.create_task(self.loop_playlist())
 
+    # TODO problem when playing new playlist
     async def play_from_playlist(self, message, playlist_name=None):
         if self.current_playlist:
             if self.playlist_i > len(self.current_playlist):

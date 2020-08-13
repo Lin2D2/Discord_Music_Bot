@@ -59,10 +59,10 @@ async def play(self, search, message, after=None, autoloop=False):
         #     "playing " + name.strip(".webm") + " in  " + str(message.author.voice.channel)
         # )
         try:
-            await message.channel.send(embed=play_track_embed(self, str(name).split(".")[0],
+            await message.channel.send(embed=play_track_embed(self, "".join(str(name).split(".")[:-1]),
                                                               message, vid, autoloop=autoloop))
         except AttributeError:
-            await self.last_song[1].channel.send(embed=play_track_embed(self, str(name).split(".")[0],
+            await self.last_song[1].channel.send(embed=play_track_embed(self, "".join(str(name).split(".")[:-1]),
                                                                         self.last_song[1], vid, autoloop=autoloop))
         if self.last_song:
             self.last_song = (search, self.last_song[1])

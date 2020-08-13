@@ -42,7 +42,7 @@ class Spotify:
             items = results['tracks']['items']
             if len(items) > 0:
                 track = items[0]
-                return {"track": track['name'], "uri": track["uri"], "image": track['album']["images"][0]["url"]}
+                return {"track": track['name'], "uri": track["uri"], "image": track['album']["images"][1]["url"]}
 
         elif album:
             results = self.spotify.search(q='album:' + artis, type='album', market='DE')
@@ -70,7 +70,7 @@ class Spotify:
                     "track": playlist_items['track']['name'],
                     "artists": [(lambda artis: artis["name"])(artis) for artis in playlist_items['track']['artists']],
                     "uri": playlist_items['track']["uri"],
-                    "image": playlist_items['track']['album']["images"][0]["url"]
+                    "image": playlist_items['track']['album']["images"][1]["url"]
                 }
                 )
 

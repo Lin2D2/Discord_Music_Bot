@@ -40,6 +40,7 @@ def find_format(name):
     for file in os.listdir(f'music'):
         if file.split(".")[0] == name:
             return file
+    return f'{name}.{file_format}'
 
 
 class Downloader:
@@ -67,10 +68,11 @@ class Downloader:
         search_result = self.alt_search(search)
         vid = search_result[0]["id"]
         self.logger.debug(f'video id: {vid}')
-        if str(search_result[0]["title"]) not in [str(e).split(".")[0] for e in list_name]:
+        name = find_format(str(search_result[0]["title"]))
+        self.logger.debug(f'name in downloader: {name}')
+        if str(search_result[0]["title"]) not in ["".join(str(e).split(".")[:-1]) for e in list_name]:
             with yt.YoutubeDL(ydl_opts) as ydl:
                 self.logger.debug("start ydl.extract_info")
-                name = find_format(str(search_result[0]["title"]))
                 self.logger.debug(name)
                 if name not in list_name:
                     self.logger.info("start ydl.download")
@@ -81,4 +83,4 @@ class Downloader:
                 return name, vid
         else:
             self.logger.info("already local skipping download")
-            return find_format(str(search_result[0]["title"])), vid
+            return name, vid
