@@ -43,8 +43,8 @@ def find_format(name):
 
 
 class Downloader:
-    def __init__(self):
-        pass
+    def __init__(self, logger):
+        self.logger = logger
     #
     # @staticmethod
     # def search(name):
@@ -66,19 +66,19 @@ class Downloader:
     def download(self, search, list_name, link=None):
         search_result = self.alt_search(search)
         vid = search_result[0]["id"]
-        print(f'video id: {vid}')
+        self.logger.debug(f'video id: {vid}')
         if str(search_result[0]["title"]) not in [str(e).split(".")[0] for e in list_name]:
             with yt.YoutubeDL(ydl_opts) as ydl:
-                print("start ydl.extract_info")
+                self.logger.debug("start ydl.extract_info")
                 name = find_format(str(search_result[0]["title"]))
-                print(name)
+                self.logger.debug(name)
                 if name not in list_name:
-                    print("start ydl.download")
+                    self.logger.info("start ydl.download")
                     if link:
                         ydl.download([link])
                     else:
                         ydl.download(["https://www.youtube.com/watch?v=" + vid])
                 return name, vid
         else:
-            print("already local skipping download")
+            self.logger.info("already local skipping download")
             return find_format(str(search_result[0]["title"])), vid

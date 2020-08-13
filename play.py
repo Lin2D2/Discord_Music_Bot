@@ -37,9 +37,9 @@ async def play(self, search, message, after=None, autoloop=False):
         files_dates = []
         for e in os.listdir("music"):
             files_dates.append(e)
-        print(f'search: {search}')
+        self.logger.debug(f'search: {search}')
         name, vid = self.downloader.download(search, files_dates)
-        print(f'song playing: {name}')
+        self.logger.info(f'song playing: {name}')
         _source = SourcePlaybackCounter(
             PCMVolumeTransformer(
                 FFmpegPCMAudio(
@@ -52,7 +52,7 @@ async def play(self, search, message, after=None, autoloop=False):
             )
         )
         if self.voice_clients[0].is_playing():
-            print("stop")
+            self.logger.debug("stop")
             await self.stop()
         self.voice_clients[0].play(_source, after=after)
         # await message.channel.send(

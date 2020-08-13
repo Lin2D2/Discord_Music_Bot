@@ -9,10 +9,11 @@ CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')
 
 
 class Spotify:
-    def __init__(self):
+    def __init__(self, logger):
         self.spotify = spotipy.Spotify(
             auth_manager=SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
         )
+        self.logger = logger
 
     def spotify_search(self, artis=None, track=None, album=None, playlist=None, category=None):
         if artis and track:

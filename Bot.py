@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-import functools
+import logging
 
 import discord
 import asyncio
@@ -20,7 +20,6 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 prefix = "?"
 loop = asyncio.get_event_loop()
 
-
 if sys.platform == "win32":
     slash = "\\"
 else:
@@ -36,6 +35,7 @@ try:
 except OSError:
     print("os error")
 
+
 # TODO make separated function to delete old songs
 
 # def creation_date(path_to_file):
@@ -50,15 +50,31 @@ except OSError:
 #             # so we'll settle for when its content was last modified.
 #             return stat.st_mtime
 
+def create_logger():
+    logger = logging.getLogger("Discord_Bot_Logger")
+    logger.setLevel(logging.DEBUG)
+
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter("%(asctime)s: %(levelname)s: %(message)s",
+                                  "%Y-%m-%d %H:%M:%S")
+
+    ch.setFormatter(formatter)
+
+    logger.addHandler(ch)
+    return logger
+
 
 class Bot(discord.Client):
     def __init__(self):
         super().__init__(loop=loop)
+        self.logger = create_logger()
         self.client = None
         self.ws = None
         self.volume = 0.2
-        self.downloader = Downloader()
-        self.spotify = Spotify()
+        self.downloader = Downloader(self.logger)
+        self.spotify = Spotify(self.logger)
         self.last_song = None
         self.playlist_i = -1
         self.current_playlist_name = None
@@ -72,7 +88,7 @@ class Bot(discord.Client):
         self.chess = Chess()
 
     async def on_ready(self):
-        print(f'{client.user} has connected to Discord!')
+        self.logger.info(f'{client.user} has connected to Discord!')
         self.client = client
         self.ws._keep_alive.name = 'Gateway keep alive'
         # await discord.Guild.fetch_member(self, client.user.id)
@@ -83,12 +99,12 @@ class Bot(discord.Client):
                 self.end_playlist_loop = True
                 break
             if self.next_song_ready[0]:
-                print("next song ready")
+                self.logger.debug("next song ready")
                 if not self.voice_clients[0].is_playing():
                     print(self.next_song_ready)
                     message = self.next_song_ready[1]
                     await self.play_from_playlist(message)
-                    print("setting next song ready False")
+                    self.logger.debug("setting next song ready False")
                     self.next_song_ready = (False, None)
                 else:
                     await asyncio.sleep(0.25)
@@ -119,9 +135,9 @@ class Bot(discord.Client):
     async def make_random_playlist(self):
         # TODO fix!!!
         files_dates = [e for e in os.listdir("music")]
-        print(files_dates)
+        self.logger.debug(files_dates)
         items = [self.spotify.spotify_search(track=str(e).split(".")[0]) for e in files_dates]
-        print(items)
+        self.logger.debug(items)
         with open(f"playlist{slash}random", "w+") as playlist:
             json.dump(items, playlist)
 
@@ -135,10 +151,11 @@ class Bot(discord.Client):
             if message.author == client.user:
                 return
             if str(message.content) != "cancel":
-                await play_func(self, self.active_search[int(message.content)-1]["title"], message)
+                await play_func(self, self.active_search[int(message.content) - 1]["title"], message)
             self.active_search = None
 
     async def join(self, author):
+        self.logger.info("joined")
         channel = author.voice.channel
         await channel.connect()
         self.voice_clients[0].is_connected()
@@ -149,6 +166,7 @@ class Bot(discord.Client):
 
     async def leave(self):
         await self.voice_clients[0].disconnect()
+        self.logger.info("left")
 
     async def search(self, search, message):
         search_result = self.downloader.alt_search(search)
@@ -158,22 +176,22 @@ class Bot(discord.Client):
     def my_after(self, error):
         async def ready():
             self.next_song_ready = (True, None)
-            print(f'next song ready triggered: {self.next_song_ready[0]}')
+            self.logger.debug(f'next song ready triggered: {self.next_song_ready[0]}')
             if self.current_playlist is None:
-                print(self.last_song[0])
+                self.logger.debug(self.last_song[0])
                 await self.play(self.last_song[0], self.last_song[1], autoloop=True)
             else:
-                print(f'current_playlist {self.current_playlist_name} content: {self.current_playlist}')
+                self.logger.debug(f'current_playlist {self.current_playlist_name} content: {self.current_playlist}')
 
         coro = ready()
         fut = asyncio.run_coroutine_threadsafe(coro, client.loop)
         try:
             fut.result()
         except OSError:
-            print(f'error: {error}')
+            self.logger.error(f'error: {error}')
 
     async def play(self, search, message, autoloop=False):
-        print("starting play function")
+        self.logger.debug("starting play {}".format(search))
         await play_func(self, search, message, after=self.my_after, autoloop=autoloop)
 
     async def setup_for_playing_playlist(self):
@@ -188,8 +206,8 @@ class Bot(discord.Client):
                     f'Playlist ended {self.current_playlist_name} in {str(message.author.voice.channel)} playing from start'
                 )
                 self.playlist_i = -1
-        print("start play from playlist function")
-        print(f'current playlist {self.current_playlist_name}')
+        self.logger.debug("start play from playlist function")
+        self.logger.info(f'current playlist {self.current_playlist_name}')
         if not playlist_name:
             if not self.current_playlist_name:
                 await self.stop()
@@ -198,10 +216,10 @@ class Bot(discord.Client):
                 try:
                     self.current_playlist = await self.get_content_from_playlist(playlist_name)
                 except FileNotFoundError:
-                    print(playlist_name)
-                    print("File Not Found!!!")
+                    self.logger.debug(playlist_name)
+                    self.logger.error("File Not Found!!!")
                 self.current_playlist_name = playlist_name
-        print(self.playlist_i)
+        self.logger.debug(self.playlist_i)
         if self.playlist_i == -1:
             await message.channel.send(f'Playing https://open.spotify.com/playlist/{self.current_playlist["uri"]}')
         self.playlist_i += 1
@@ -247,29 +265,32 @@ class Bot(discord.Client):
 
     async def pause(self):
         self.voice_clients[0].pause()
+        self.logger.info("paused")
 
     async def resume(self):
         self.voice_clients[0].resume()
+        self.logger.info("resumed")
 
     async def stop(self):
         self.voice_clients[0].stop()
+        self.logger.info("stopped")
 
     async def create_playlist_from_spotify(self, name, message):
-        print(name + message)
+        self.logger.debug(name + message)
         tracks = self.spotify.get_playlist_content(self.spotify.spotify_search(playlist=message)["uri"])
         await self.add_playlist(name, tracks)
 
     async def create_playlist_from_spotify_uri(self, name, message):
-        print(name + message)
+        self.logger.debug(name + message)
         tracks = self.spotify.get_playlist_content(str(message).split(":")[-1])
         await self.add_playlist(name, tracks)
-        print("Done with playlist creation")
+        self.logger.info("Done with playlist creation")
 
     async def create_playlist_from_spotify_link(self, name, message):
-        print(name + message)
+        self.logger.debug(name + message)
         tracks = self.spotify.get_playlist_content(str(message).split("/")[-1].split("?")[0])
         await self.add_playlist(name, tracks)
-        print("Done with playlist creation")
+        self.logger.info("Done with playlist creation")
 
 
 client = Bot()

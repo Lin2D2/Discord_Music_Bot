@@ -70,7 +70,7 @@ def play_track_embed(self, title, message, vid, autoloop=None):
                     # file = discord.File(img, filename="thumbnail.png")
                     embed.set_thumbnail(url=self.downloader.info_extract(vid=vid)["thumbnails"][1]["url"])
                 except TypeError:
-                    print("No Idea what went wrong")
+                    self.logger.error("No Idea what went wrong")
     embed.set_footer(text=self.client.user.name, icon_url=self.client.user.avatar_url)
     return embed
 
