@@ -49,17 +49,20 @@ def play_track_embed(self, title, message, vid, autoloop=None):
         description=f'playing {title} in {message.author.voice.channel}',
         timestamp=datetime.datetime.now().utcfromtimestamp(int(time.time())))
     try:
-        embed.set_thumbnail(url=self.spotify.spotify_search(
-            track=str(message.content).split("?play ", maxsplit=1)[-1])["image"])
+        embed.set_thumbnail(url=self.current_playlist[self.playlist_i]["image"])
     except TypeError:
         try:
-            embed.set_thumbnail(url=self.spotify.spotify_search(track=title)["image"])
+            embed.set_thumbnail(url=self.spotify.spotify_search(
+                track=str(message.content).split("?play ", maxsplit=1)[-1])["image"])
         except TypeError:
             try:
-                print("used youtube thumbnail")
-                embed.set_thumbnail(url=self.downloader.info_extract(vid=vid)["thumbnails"][1]["url"])
+                embed.set_thumbnail(url=self.spotify.spotify_search(track=title)["image"])
             except TypeError:
-                print("No Idea what went wrong")
+                try:
+                    print("used youtube thumbnail")
+                    embed.set_thumbnail(url=self.downloader.info_extract(vid=vid)["thumbnails"][1]["url"])
+                except TypeError:
+                    print("No Idea what went wrong")
     embed.set_footer(text=self.client.user.name, icon_url=self.client.user.avatar_url)
     return embed
 

@@ -61,12 +61,13 @@ class Bot(discord.Client):
         self.spotify = Spotify()
         self.last_song = ("", None)
         self.playlist_i = -1
-        self.current_playlist_name = ""
+        self.current_playlist_name = None
         self.current_playlist = []
         self.next_song_ready = (False, None)
         self.skipping = False
         self.end_playlist_loop = False
         self.active_search = None
+        self.last_message = None
 
         self.chess = Chess()
 
@@ -95,7 +96,7 @@ class Bot(discord.Client):
 
     @staticmethod
     async def add_playlist(playlist_name, items):
-        with open(f"playlist/{playlist_name}", "w") as playlist:
+        with open(f'playlist{slash}{str(playlist_name).strip(" ")}.json', "w") as playlist:
             json.dump(items, playlist)
 
     @staticmethod
@@ -104,13 +105,13 @@ class Bot(discord.Client):
 
     @staticmethod
     async def add_to_playlist(playlist_name, item):
-        with open(f"playlist/{playlist_name}", "w") as playlist:
+        with open(f'playlist{slash}{str(playlist_name).strip(" ")}', "w") as playlist:
             items = json.load(playlist)
             json.dump(items.append(item), playlist)
 
     @staticmethod
     async def get_content_from_playlist(playlist_name):
-        with open(f"playlist/{playlist_name}", "r") as playlist:
+        with open(f'playlist{slash}{str(playlist_name).strip(" ")}.json', "r") as playlist:
             items = json.load(playlist)
         return items
 
@@ -120,13 +121,14 @@ class Bot(discord.Client):
         print(files_dates)
         items = [self.spotify.spotify_search(track=str(e).split(".")[0]) for e in files_dates]
         print(items)
-        with open(f"playlist/random", "w+") as playlist:
+        with open(f"playlist{slash}random", "w+") as playlist:
             json.dump(items, playlist)
 
     async def on_message(self, message):
         if not self.active_search:
             if message.author == client.user:
                 return
+            self.last_message = message
             await message_func(self, message, client, prefix)
         else:
             if message.author == client.user:
@@ -185,15 +187,14 @@ class Bot(discord.Client):
         print("start play from playlist function")
         print(f'current playlist {self.current_playlist_name}')
         if not playlist_name:
-            if not self.current_playlist_name == "":
-                playlist_name = self.current_playlist_name
-            else:
+            if not self.current_playlist_name:
                 await self.stop()
-        if self.current_playlist_name != playlist_name:
+        if self.current_playlist_name != playlist_name or not self.current_playlist_name:
             try:
                 self.current_playlist = await self.get_content_from_playlist(playlist_name)
             except FileNotFoundError:
-                pass
+                print(playlist_name)
+                print("File Not Found!!!")
             self.current_playlist_name = playlist_name
         self.playlist_i += 1
         await play_func(
@@ -234,6 +235,8 @@ class Bot(discord.Client):
                 delete_after=30
             )
 
+    # TODO implement skip incremt i and start playfromplaylist
+
     async def pause(self):
         self.voice_clients[0].pause()
 
@@ -250,7 +253,13 @@ class Bot(discord.Client):
 
     async def create_playlist_from_spotify_uri(self, name, message):
         print(name + message)
-        tracks = self.spotify.get_playlist_content(message)
+        tracks = self.spotify.get_playlist_content(str(message).split(":")[-1])
+        await self.add_playlist(name, tracks)
+        print("Done with playlist creation")
+
+    async def create_playlist_from_spotify_link(self, name, message):
+        print(name + message)
+        tracks = self.spotify.get_playlist_content(str(message).split("/")[-1].split("?")[0])
         await self.add_playlist(name, tracks)
         print("Done with playlist creation")
 

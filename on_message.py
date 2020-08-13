@@ -109,6 +109,11 @@ async def message(self, message, client, prefix):
                     str(message.content).split("create ")[1].split("from uri ")[0],
                     str(message.content).split("from uri ")[-1]
                 )
+            elif str(message.content).find("link ") != -1:
+                await self.create_playlist_from_spotify_link(
+                    str(message.content).split("create ")[1].split("from link ")[0],
+                    str(message.content).split("from link ")[-1]
+                )
             else:
                 if str(message.content).find("random ") != -1:
                     await self.make_random_playlist()
