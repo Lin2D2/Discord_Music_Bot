@@ -39,6 +39,7 @@ async def play(self, search, message, after=None, autoloop=False):
             files_dates.append(e)
         print(f'search: {search}')
         name, vid = self.downloader.download(search, files_dates)
+        print(f'song playing: {name}')
         _source = SourcePlaybackCounter(
             PCMVolumeTransformer(
                 FFmpegPCMAudio(
@@ -58,12 +59,15 @@ async def play(self, search, message, after=None, autoloop=False):
         #     "playing " + name.strip(".webm") + " in  " + str(message.author.voice.channel)
         # )
         try:
-            await message.channel.send(embed=play_track_embed(self, name.strip(".webm"),
+            await message.channel.send(embed=play_track_embed(self, str(name).split(".")[0],
                                                               message, vid, autoloop=autoloop))
         except AttributeError:
-            await self.last_song[1].channel.send(embed=play_track_embed(self, name.strip(".webm"),
-                                                                  self.last_song[1], vid, autoloop=autoloop))
-        self.last_song = (search, self.last_song[1])
+            await self.last_song[1].channel.send(embed=play_track_embed(self, str(name).split(".")[0],
+                                                                        self.last_song[1], vid, autoloop=autoloop))
+        if self.last_song:
+            self.last_song = (search, self.last_song[1])
+        else:
+            self.last_song = (search, message)
     else:
         await self.join(message.author)
         await self.play(search, message)

@@ -59,10 +59,10 @@ class Bot(discord.Client):
         self.volume = 0.2
         self.downloader = Downloader()
         self.spotify = Spotify()
-        self.last_song = ("", None)
+        self.last_song = None
         self.playlist_i = -1
         self.current_playlist_name = None
-        self.current_playlist = []
+        self.current_playlist = None
         self.next_song_ready = (False, None)
         self.skipping = False
         self.end_playlist_loop = False
@@ -83,11 +83,12 @@ class Bot(discord.Client):
                 self.end_playlist_loop = True
                 break
             if self.next_song_ready[0]:
+                print("next song ready")
                 if not self.voice_clients[0].is_playing():
                     print(self.next_song_ready)
                     message = self.next_song_ready[1]
                     await self.play_from_playlist(message)
-                    await asyncio.sleep(0.25)
+                    print("setting next song ready False")
                     self.next_song_ready = (False, None)
                 else:
                     await asyncio.sleep(0.25)
@@ -158,9 +159,11 @@ class Bot(discord.Client):
         async def ready():
             self.next_song_ready = (True, None)
             print(f'next song ready triggered: {self.next_song_ready[0]}')
-            if self.current_playlist == []:
+            if self.current_playlist is None:
                 print(self.last_song[0])
                 await self.play(self.last_song[0], self.last_song[1], autoloop=True)
+            else:
+                print(f'current_playlist {self.current_playlist_name} content: {self.current_playlist}')
 
         coro = ready()
         fut = asyncio.run_coroutine_threadsafe(coro, client.loop)
@@ -179,27 +182,32 @@ class Bot(discord.Client):
         self.loop.create_task(self.loop_playlist())
 
     async def play_from_playlist(self, message, playlist_name=None):
-        if self.playlist_i > len(self.current_playlist):
-            await message.channel.send(
-                f'Playlist ended {self.current_playlist_name} in {str(message.author.voice.channel)} playing from start'
-            )
-            self.playlist_i = 0
+        if self.current_playlist:
+            if self.playlist_i > len(self.current_playlist):
+                await message.channel.send(
+                    f'Playlist ended {self.current_playlist_name} in {str(message.author.voice.channel)} playing from start'
+                )
+                self.playlist_i = -1
         print("start play from playlist function")
         print(f'current playlist {self.current_playlist_name}')
         if not playlist_name:
             if not self.current_playlist_name:
                 await self.stop()
         if self.current_playlist_name != playlist_name or not self.current_playlist_name:
-            try:
-                self.current_playlist = await self.get_content_from_playlist(playlist_name)
-            except FileNotFoundError:
-                print(playlist_name)
-                print("File Not Found!!!")
-            self.current_playlist_name = playlist_name
+            if playlist_name:
+                try:
+                    self.current_playlist = await self.get_content_from_playlist(playlist_name)
+                except FileNotFoundError:
+                    print(playlist_name)
+                    print("File Not Found!!!")
+                self.current_playlist_name = playlist_name
+        print(self.playlist_i)
+        if self.playlist_i == -1:
+            await message.channel.send(f'Playing https://open.spotify.com/playlist/{self.current_playlist["uri"]}')
         self.playlist_i += 1
         await play_func(
             self,
-            f'{self.current_playlist[self.playlist_i]["track"]} {self.current_playlist[self.playlist_i]["artists"][0]}',
+            f'{self.current_playlist["tracks"][self.playlist_i]["track"]} {self.current_playlist["tracks"][self.playlist_i]["artists"][0]}',
             message,
             after=self.my_after
         )

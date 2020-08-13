@@ -58,6 +58,7 @@ class Spotify:
                 return {"playlist": playlist['name'], "uri": playlist['uri']}
 
     def get_playlist_content(self, playlist_id):
+        playlist = self.spotify.playlist(playlist_id)
         results = self.spotify.playlist(playlist_id, fields="tracks,next")
         tracks = results['tracks']
         items = []
@@ -76,7 +77,7 @@ class Spotify:
         while tracks['next']:
             tracks = self.spotify.next(tracks)
             extract(tracks)
-        return items
+        return {"name": playlist["name"], "uri": playlist_id, "images": playlist["images"], "tracks": items}
 
 
 # spotify = Spotify()

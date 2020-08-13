@@ -35,6 +35,12 @@ ydl_opts = {
 #         return True
 #     return False
 
+# TODO find better way maybe just do postprocessing to change file type to webm
+def find_format(name):
+    for file in os.listdir(f'music'):
+        if file.split(".")[0] == name:
+            return file
+
 
 class Downloader:
     def __init__(self):
@@ -64,7 +70,7 @@ class Downloader:
         if str(search_result[0]["title"]) not in [str(e).split(".")[0] for e in list_name]:
             with yt.YoutubeDL(ydl_opts) as ydl:
                 print("start ydl.extract_info")
-                name = str(search_result[0]["title"]) + "." + str(file_format)
+                name = find_format(str(search_result[0]["title"]))
                 print(name)
                 if name not in list_name:
                     print("start ydl.download")
@@ -74,5 +80,5 @@ class Downloader:
                         ydl.download(["https://www.youtube.com/watch?v=" + vid])
                 return name, vid
         else:
-            print("Video already local skipping download")
-            return str(search_result[0]["title"]) + "." + file_format, vid
+            print("already local skipping download")
+            return find_format(str(search_result[0]["title"])), vid

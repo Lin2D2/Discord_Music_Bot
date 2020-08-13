@@ -1,6 +1,9 @@
 import discord
 import datetime
 import time
+from PIL import Image
+import requests
+from io import BytesIO
 
 
 def chess_board_embed(self, message):
@@ -49,7 +52,7 @@ def play_track_embed(self, title, message, vid, autoloop=None):
         description=f'playing {title} in {message.author.voice.channel}',
         timestamp=datetime.datetime.now().utcfromtimestamp(int(time.time())))
     try:
-        embed.set_thumbnail(url=self.current_playlist[self.playlist_i]["image"])
+        embed.set_thumbnail(url=self.current_playlist["tracks"][self.playlist_i]["image"])
     except TypeError:
         try:
             embed.set_thumbnail(url=self.spotify.spotify_search(
@@ -60,6 +63,11 @@ def play_track_embed(self, title, message, vid, autoloop=None):
             except TypeError:
                 try:
                     print("used youtube thumbnail")
+                    # TODO find a way to show sized image instead of the 16:9
+                    # response = requests.get(self.downloader.info_extract(vid=vid)["thumbnails"][1]["url"])
+                    # img = Image.open(BytesIO(response.content))
+                    # img.thumbnail((400, 400))
+                    # file = discord.File(img, filename="thumbnail.png")
                     embed.set_thumbnail(url=self.downloader.info_extract(vid=vid)["thumbnails"][1]["url"])
                 except TypeError:
                     print("No Idea what went wrong")
