@@ -131,7 +131,8 @@ class Bot(discord.Client):
         else:
             if message.author == client.user:
                 return
-            await play_func(self, self.active_search[int(message.content)-1]["title"], message)
+            if str(message.content) != "cancel":
+                await play_func(self, self.active_search[int(message.content)-1]["title"], message)
             self.active_search = None
 
     async def join(self, author):
