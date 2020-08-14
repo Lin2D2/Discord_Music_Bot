@@ -213,10 +213,11 @@ class Bot(discord.Client):
         self.shuffel = None
         self.loop.create_task(self.loop_playlist())
 
-    # TODO problem when playing new playlist
+    # TODO problem when playing new playlist playing after normal play
     async def play_from_playlist(self, message, playlist_name=None):
-        self.logger.debug(f'crrent playlist i {self.playlist_i} len playlist {len(self.current_playlist["tracks"])}')
         if self.current_playlist:
+            self.logger.debug(
+                f'crrent playlist i {self.playlist_i} len playlist {len(self.current_playlist["tracks"])}')
             if self.playlist_i > len(self.current_playlist["tracks"]):
                 await message.channel.send(
                     f'Playlist ended {self.current_playlist_name} in {str(message.author.voice.channel)} playing from start'

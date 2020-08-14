@@ -40,6 +40,7 @@ def find_format(name):
     for file in os.listdir(f'music'):
         if file.split(".")[0] == name:
             return file
+    name = name.replace("|", "_")
     return f'{name}.{file_format}'
 
 
@@ -64,6 +65,7 @@ class Downloader:
             with yt.YoutubeDL(ydl_opts) as ydl:
                 return ydl.extract_info("{}".format(link))
 
+    # TODO name cant contain | its changed to _ !!!
     def download(self, search, list_name, link=None):
         search_result = self.alt_search(search)
         vid = search_result[0]["id"]
@@ -81,7 +83,9 @@ class Downloader:
                     else:
                         ydl.download(["https://www.youtube.com/watch?v=" + vid])
                 name = find_format(str(search_result[0]["title"]))
+                self.logger.debug(f'song name: {name}')
                 return name, vid
         else:
             self.logger.info("already local skipping download")
+            self.logger.debug(f'song name: {name}')
             return name, vid
