@@ -218,7 +218,7 @@ class Bot(discord.Client):
         if self.current_playlist:
             self.logger.debug(
                 f'crrent playlist i {self.playlist_i} len playlist {len(self.current_playlist["tracks"])}')
-            if self.playlist_i > len(self.current_playlist["tracks"]):
+            if self.playlist_i == len(self.current_playlist["tracks"]):
                 await message.channel.send(
                     f'Playlist ended {self.current_playlist_name} in {str(message.author.voice.channel)} playing from start'
                 )
@@ -240,6 +240,7 @@ class Bot(discord.Client):
         if not self.shuffel:
             await self.shuffel_playlist()
             # TODO add shuffel call in on_message
+        self.logger.info(f'shuffel: {self.shuffel}')
         if self.playlist_i == -1:
             await message.channel.send(f'Playing https://open.spotify.com/playlist/{self.current_playlist["uri"]}')
         self.playlist_i += 1
@@ -297,10 +298,13 @@ class Bot(discord.Client):
         self.voice_clients[0].stop()
         self.logger.info("stopped")
 
+    # TODO function to show avilable playlists
+
     async def create_playlist_from_spotify(self, name, message):
         self.logger.debug(name + message)
         tracks = self.spotify.get_playlist_content(self.spotify.spotify_search(playlist=message)["uri"])
         await self.add_playlist(name, tracks)
+        # TODO send message when done
 
     async def create_playlist_from_spotify_uri(self, name, message):
         self.logger.debug(name + message)
