@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import logging
+import random
 
 import discord
 import asyncio
@@ -33,7 +34,7 @@ try:
     else:
         pass
 except OSError:
-    print("os error")
+    logging.error("os error")
 
 
 # TODO make separated function to delete old songs
@@ -77,7 +78,7 @@ class Bot(discord.Client):
         self.spotify = Spotify(self.logger)
         self.last_song = None
         self.playlist_i = -1
-        self.shuffel = None  # TODO implement shiffel, shiffel is just a list of indexes that are randeom but each song is only played ones. shuffel is indexed by the playlist i
+        self.shuffel = None
         self.current_playlist_name = None
         self.current_playlist = None
         self.next_song_ready = (False, None)
@@ -132,6 +133,17 @@ class Bot(discord.Client):
         with open(f'playlist{slash}{str(playlist_name).strip(" ")}.json', "r") as playlist:
             items = json.load(playlist)
         return items
+
+    async def shuffel_playlist(self):
+        numbers = []
+        for i in self.current_playlist["tracks"]:
+            numbers.append(random.randrange(0, len(self.current_playlist["tracks"])))
+        numbers = list(dict.fromkeys(numbers))
+        range_list = range(0, len(self.current_playlist["tracks"]))
+        for e in range_list:
+            if e not in numbers:
+                numbers.append(int(e))
+        self.shuffel = numbers
 
     async def make_random_playlist(self):
         # TODO fix!!!
@@ -198,6 +210,7 @@ class Bot(discord.Client):
     async def setup_for_playing_playlist(self):
         self.playlist_i = -1
         self.next_song_ready = (False, None)
+        self.shuffel = None
         self.loop.create_task(self.loop_playlist())
 
     # TODO problem when playing new playlist
@@ -221,12 +234,16 @@ class Bot(discord.Client):
                     self.logger.debug(playlist_name)
                     self.logger.error("File Not Found!!!")
                 self.current_playlist_name = playlist_name
+        self.logger.info("shuffeling")
+        await self.shuffel_playlist()
         self.logger.debug(self.playlist_i)
         if self.playlist_i == -1:
             await message.channel.send(f'Playing https://open.spotify.com/playlist/{self.current_playlist["uri"]}')
         self.playlist_i += 1
         await play_func(
             self,
+            f'{self.current_playlist["tracks"][self.shuffel[self.playlist_i]]["track"]} {self.current_playlist["tracks"][self.shuffel[self.playlist_i]]["artists"][0]}'
+            if self.shuffel else
             f'{self.current_playlist["tracks"][self.playlist_i]["track"]} {self.current_playlist["tracks"][self.playlist_i]["artists"][0]}',
             message,
             after=self.my_after

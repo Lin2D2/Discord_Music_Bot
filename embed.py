@@ -52,7 +52,9 @@ def play_track_embed(self, title, message, vid, autoloop=None):
         description=f'playing {title} in {message.author.voice.channel}',
         timestamp=datetime.datetime.now().utcfromtimestamp(int(time.time())))
     try:
-        embed.set_thumbnail(url=self.current_playlist["tracks"][self.playlist_i]["image"])
+        embed.set_thumbnail(url=self.current_playlist["tracks"][self.shuffel[self.playlist_i]]["image"]
+                            if self.shuffel else
+                            self.current_playlist["tracks"][self.playlist_i]["image"])
     except TypeError:
         try:
             embed.set_thumbnail(url=self.spotify.spotify_search(
