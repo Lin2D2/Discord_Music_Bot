@@ -80,6 +80,7 @@ class Downloader:
                         ydl.download([link])
                     else:
                         ydl.download(["https://www.youtube.com/watch?v=" + vid])
+                name = find_format(str(search_result[0]["title"]))
                 return name, vid
         else:
             self.logger.info("already local skipping download")

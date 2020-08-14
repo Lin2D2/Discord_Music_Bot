@@ -215,8 +215,9 @@ class Bot(discord.Client):
 
     # TODO problem when playing new playlist
     async def play_from_playlist(self, message, playlist_name=None):
+        self.logger.debug(f'crrent playlist i {self.playlist_i} len playlist {len(self.current_playlist["tracks"])}')
         if self.current_playlist:
-            if self.playlist_i > len(self.current_playlist):
+            if self.playlist_i > len(self.current_playlist["tracks"]):
                 await message.channel.send(
                     f'Playlist ended {self.current_playlist_name} in {str(message.author.voice.channel)} playing from start'
                 )
@@ -235,8 +236,9 @@ class Bot(discord.Client):
                     self.logger.error("File Not Found!!!")
                 self.current_playlist_name = playlist_name
         self.logger.info("shuffeling")
-        await self.shuffel_playlist()
-        self.logger.debug(self.playlist_i)
+        if not self.shuffel:
+            await self.shuffel_playlist()
+            # TODO add shuffel call in on_message
         if self.playlist_i == -1:
             await message.channel.send(f'Playing https://open.spotify.com/playlist/{self.current_playlist["uri"]}')
         self.playlist_i += 1
