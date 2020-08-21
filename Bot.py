@@ -4,7 +4,7 @@ import json
 import logging
 import random
 
-import discord
+import discord  # pip install git+https://github.com/Rapptz/discord.py.git
 import asyncio
 
 from downloader import Downloader
@@ -186,15 +186,22 @@ class Bot(discord.Client):
         self.active_search = search_result
         await message.channel.send(embed=search_track_embed(self, search, search_result))
 
+    async def skip(self):
+        self.skipping = True
+        await self.stop()
+        self.next_song_ready = (True, None)
+        self.skipping = False
+
     def my_after(self, error):
         async def ready():
-            self.next_song_ready = (True, None)
-            self.logger.debug(f'next song ready triggered: {self.next_song_ready[0]}')
-            if self.current_playlist is None:
-                self.logger.debug(self.last_song[0])
-                await self.play(self.last_song[0], self.last_song[1], autoloop=True)
-            else:
-                self.logger.debug(f'current_playlist {self.current_playlist_name} content: {self.current_playlist}')
+            if not self.skipping:
+                self.next_song_ready = (True, None)
+                self.logger.debug(f'next song ready triggered: {self.next_song_ready[0]}')
+                if self.current_playlist is None:
+                    self.logger.debug(self.last_song[0])
+                    await self.play(self.last_song[0], self.last_song[1], autoloop=True)
+                else:
+                    self.logger.debug(f'current_playlist {self.current_playlist_name} content: {self.current_playlist}')
 
         coro = ready()
         fut = asyncio.run_coroutine_threadsafe(coro, client.loop)

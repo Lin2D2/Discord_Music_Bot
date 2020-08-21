@@ -40,7 +40,7 @@ def find_format(name):
     for file in os.listdir(f'music'):
         if file.split(".")[0] == name:
             return file
-    name = name.replace("|", "_")
+    name = name.replace("|", "_").replace("\"", "\'")
     return f'{name}.{file_format}'
 
 
@@ -72,7 +72,12 @@ class Downloader:
         self.logger.debug(f'video id: {vid}')
         name = find_format(str(search_result[0]["title"]))
         self.logger.debug(f'name in downloader: {name}')
-        if str(search_result[0]["title"]) not in ["".join(str(e).split(".")[:-1]) for e in list_name]:
+
+        print(True if str(search_result[0]["title"]).replace("|", "_").replace("\"", "\'")
+                      not in [".".join(str(e).split(".")[:-1]) for e in list_name] else False)
+
+        if (str(search_result[0]["title"]).replace("|", "_").replace("\"", "\'")
+                not in [".".join(str(e).split(".")[:-1]) for e in list_name]):
             with yt.YoutubeDL(ydl_opts) as ydl:
                 self.logger.debug("start ydl.extract_info")
                 self.logger.debug(name)

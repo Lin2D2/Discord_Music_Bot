@@ -30,6 +30,12 @@ async def message(self, message, client, prefix):
                 delete_after=20
             )
             await self.resume()
+        elif message.content == prefix + "skip":
+            await message.channel.send(
+                "skipping song in " + str(message.author.voice.channel),
+                delete_after=20
+            )
+            await self.skip()
         elif str(message.content).find(prefix + "read") != -1:
             await message.channel.send(
                 str(message.content).split(
