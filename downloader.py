@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 from dotenv import load_dotenv
 import youtube_dl as yt
-import yt_search
 import sys
 import os
 import time
@@ -47,10 +46,6 @@ def find_format(name):
 class Downloader:
     def __init__(self, logger):
         self.logger = logger
-    #
-    # @staticmethod
-    # def search(name):
-    #     return yts.search(name, sMax=8, sType=["video"])
 
     @staticmethod
     def alt_search(name):
