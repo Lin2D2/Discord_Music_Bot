@@ -5,5 +5,5 @@ spotipy==2.13.0
 youtube-dl==2020.7.28
 youtube_search==1.1.0
 discord.py[voice]
-Pillow==7.2.0
+Pillow==9.0.1
 # and dicord.py from source https://github.com/Rapptz/discord.py.git and its reqirements
